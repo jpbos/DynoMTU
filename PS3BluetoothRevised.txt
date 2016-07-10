@@ -1,0 +1,55 @@
+/*
+ Barrett Anderies
+ March 11, 2013
+ This is a modified version of the PS3BT.ino example sketch by Kristian Lauszus
+ For more information visit his blog: http://blog.tkjelectronics.dk/ or 
+ send him an e-mail:  kristianl@tkjelectronics.com
+ */
+
+#include <PS3BT.h>                                                    //Include the necessary libraries.
+#include <Servo.h>
+
+USB Usb;
+BTD Btd(&Usb);
+PS3BT PS3(&Btd); 
+
+Servo steer;                                                         //Create instances of type Servo. servo1 is the steering servo and servo2 is the ESC.
+Servo esc;
+
+
+void setup() {
+  Serial.begin(115200);                                              
+  if (Usb.Init() == -1) {                                            
+    Serial.print(F("\r\nOSC did not start"));
+    while(1); //halt
+  }
+  Serial.print(F("\r\nPS3 Bluetooth Library Started"));              
+  pinMode(3, OUTPUT);
+  pinMode(5, OUTPUT);
+  steer.attach(5);                                                  //Steering servo on digital pin 5
+  esc.attach(3);                                                  //ESC on sigital pin 3
+  
+}
+void loop() 
+{
+  Usb.Task();
+
+  if(PS3.PS3Connected || PS3.PS3NavigationConnected) {
+    
+    steer.write(map(PS3.getAnalogHat(RightHatX), 0, 255, 140, 40));
+    esc.write(map(PS3.getAnalogHat(LeftHatY), 0, 255, 141.125, 38.875));
+  }
+
+
+  else 
+   {
+    steer.write(90);
+    esc.write(90);
+   }
+    
+    if(PS3.getButtonClick(PS)) {
+      PS3.disconnect();
+    }
+
+   
+}
